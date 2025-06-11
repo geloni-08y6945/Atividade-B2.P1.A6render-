@@ -1,36 +1,57 @@
 // GaragemInteligente/backend/server.js
+
+// Importações dos módulos necessários
 import express from 'express';
-import dotenv from 'dotenv'; 
+import dotenv from 'dotenv';
 import axios from 'axios';
 
-// --- PASSO IMPORTANTE: Carrega variáveis de ambiente do arquivo .env ---
-dotenv.config(); 
-// -----------------------------------------------------------------------
-
-// --- LINHA DE DEBUG ADICIONADA ---
-console.log('[Servidor Backend DEBUG Início] Tentando ler OPENWEATHER_API_KEY:', process.env.OPENWEATHER_API_KEY);
-// ---------------------------------
+// Carrega variáveis de ambiente do arquivo .env
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3001;
-const apiKey = process.env.OPENWEATHER_API_KEY; 
+const apiKey = process.env.OPENWEATHER_API_KEY;
 
+// ----------------------------------------------------------------------------------
+// >> PARTE CRÍTICA: Middleware para habilitar o CORS <<
+// Este bloco deve vir ANTES de todas as suas rotas (app.get).
+// Ele adiciona os cabeçalhos de permissão em TODAS as respostas do servidor.
+// ----------------------------------------------------------------------------------
 app.use((req, res, next) => {
+    // Permite que qualquer origem (qualquer site) acesse sua API. O '*' significa 'todos'.
     res.header('Access-Control-Allow-Origin', '*');
+    // Define quais cabeçalhos são permitidos na requisição.
     res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    // Continua para a próxima etapa (a rota do endpoint).
     next();
 });
 
+// ----- DADOS SIMULADOS PARA NOVOS ENDPOINTS (da atividade) -----
+const dicasManutencaoGerais = [
+    { id: 1, dica: "Verifique o nível do óleo regularmente." },
+    { id: 2, dica: "Calibre os pneus semanalmente." },
+    { id: 3, dica: "Confira o fluido de arrefecimento." }
+];
+const dicasPorTipo = {
+    carro: [
+        { id: 10, dica: "Faça o rodízio dos pneus a cada 10.000 km." },
+        { id: 11, dica: "Verifique o alinhamento e balanceamento anualmente." }
+    ],
+    moto: [
+        { id: 20, dica: "Lubrifique a corrente frequentemente." },
+        { id: 21, dica: "Verifique a tensão da corrente." }
+    ]
+};
+
+// ----- ENDPOINTS DA API -----
+
+// Endpoint de Previsão do Tempo
 app.get('/api/previsao/:cidade', async (req, res) => {
     const { cidade } = req.params;
 
-    // --- LINHA DE DEBUG ADICIONADA DENTRO DO ENDPOINT ---
-    console.log(`[Servidor Backend DEBUG Endpoint] Valor de apiKey ao processar /api/previsao/${cidade}:`, apiKey);
-    // ----------------------------------------------------
-
-    if (!apiKey) { 
-        console.error('[Servidor Backend] ERRO FATAL no endpoint: Chave da API OpenWeatherMap não configurada no servidor.');
-        return res.status(500).json({ error: 'Chave da API OpenWeatherMap não configurada no servidor.' });
+    if (!apiKey) {
+        console.error('[Servidor] ERRO: Chave da API OpenWeatherMap não configurada.');
+        return res.status(500).json({ error: 'Chave da API não configurada no servidor.' });
     }
     if (!cidade) {
         return res.status(400).json({ error: 'Nome da cidade é obrigatório.' });
@@ -39,23 +60,35 @@ app.get('/api/previsao/:cidade', async (req, res) => {
     const weatherAPIUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${cidade}&appid=${apiKey}&units=metric&lang=pt_br`;
 
     try {
-        console.log(`[Servidor Backend] Buscando previsão para: ${cidade}`);
+        console.log(`[Servidor] Buscando previsão para: ${cidade}`);
         const apiResponse = await axios.get(weatherAPIUrl);
-        console.log('[Servidor Backend] Dados recebidos da OpenWeatherMap com sucesso.');
         res.json(apiResponse.data);
     } catch (error) {
-        console.error("[Servidor Backend] Erro ao buscar previsão da OpenWeatherMap:", error.response?.data || error.message);
         const status = error.response?.status || 500;
-        const message = error.response?.data?.message || 'Erro ao buscar previsão do tempo no servidor externo.';
+        const message = error.response?.data?.message || 'Erro ao buscar previsão no servidor.';
         res.status(status).json({ error: message });
     }
 });
 
-app.listen(port, () => {
-    console.log(`Servidor backend da Garagem Inteligente rodando em http://localhost:${port}`);
-    if (!process.env.OPENWEATHER_API_KEY) { 
-        console.warn('[Servidor Backend ATENÇÃO Início] A variável de ambiente OPENWEATHER_API_KEY não foi carregada. Verifique seu arquivo .env na pasta backend/');
+// Endpoint de Dicas Gerais
+app.get('/api/dicas-manutencao', (req, res) => {
+    console.log("Recebida requisição para /api/dicas-manutencao");
+    res.json(dicasManutencaoGerais);
+});
+
+// Endpoint de Dicas por Tipo de Veículo
+app.get('/api/dicas-manutencao/:tipoVeiculo', (req, res) => {
+    const { tipoVeiculo } = req.params;
+    const dicas = dicasPorTipo[tipoVeiculo.toLowerCase()];
+
+    if (dicas) {
+        res.json(dicas);
     } else {
-        console.log('[Servidor Backend INFO Início] Chave da API OpenWeatherMap parece estar carregada.');
+        res.status(404).json({ error: `Nenhuma dica encontrada para o tipo: ${tipoVeiculo}` });
     }
+});
+
+// Inicia o servidor
+app.listen(port, () => {
+    console.log(`Servidor backend rodando na porta ${port}`);
 });
