@@ -15,6 +15,7 @@ async function buscarPrevisaoDetalhada(cidade) {
     // Exemplo: const backendUrl = `https://meu-backend-garagem.onrender.com/api/previsao/${encodedCidade}`;
     const backendUrl = `https://atividade-b2-p1-a6render.onrender.com/api/previsao/${encodedCidade}`;
 
+
     console.log(`[Frontend] Solicitando previsão para: ${cidade} ao backend: ${backendUrl}`);
 
     try {
