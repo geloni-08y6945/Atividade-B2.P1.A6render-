@@ -13,7 +13,7 @@ async function buscarPrevisaoDetalhada(cidade) {
     const encodedCidade = encodeURIComponent(cidade);
     // 👇👇👇 CORREÇÃO AQUI: Substitua pela SUA URL pública do Render.com 👇👇👇
     // Exemplo: const backendUrl = `https://meu-backend-garagem.onrender.com/api/previsao/${encodedCidade}`;
-    const backendUrl = `https://SEU-NOME-DE-SERVICO-NO-RENDER.onrender.com/api/previsao/${encodedCidade}`;
+    const backendUrl = `https://atividade-b2-p1-a6render.onrender.com/api/previsao/${encodedCidade}`;
 
     console.log(`[Frontend] Solicitando previsão para: ${cidade} ao backend: ${backendUrl}`);
 
