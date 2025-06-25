@@ -1,62 +1,89 @@
-// Cole este código no final do seu arquivo client.js
+// client.js (Versão Corrigida e Completa)
 
-// Lembre-se que você já deve ter a URL do seu backend definida no topo do arquivo.
-// Ex: const backendUrl = 'http://localhost:3001'; 
-// ou const backendUrl = 'https://seu-backend.onrender.com';
+// Supondo que você tenha esta linha no topo do seu arquivo:
+// const backendUrl = 'http://localhost:3001'; // Para teste local
+// const backendUrl = 'https://seu-backend.onrender.com'; // Para produção
 
-// --- INÍCIO DO NOVO CÓDIGO PARA DICAS ---
-
-// 1. Pegar os novos elementos do HTML que acabamos de criar
+// ----------------- CÓDIGO PARA DICAS DE MANUTENÇÃO (Seu código, sem alterações) -----------------
 const btnBuscarDicas = document.getElementById('btn-buscar-dicas');
 const dicasContainer = document.getElementById('dicas-container');
 
-// 2. Criar a função que busca os dados no backend
 async function buscarDicasDeManutencao() {
-    dicasContainer.innerHTML = '<p>Carregando dicas...</p>'; // Mostra uma mensagem de carregando
-
+    dicasContainer.innerHTML = '<p>Carregando dicas...</p>';
     try {
-        // Faz a chamada para o NOVO endpoint que você criou no backend
         const response = await fetch(`${backendUrl}/api/dicas-manutencao`);
-
         if (!response.ok) {
-            // Se o backend retornar um erro, nós mostramos aqui
             throw new Error(`Erro na rede: ${response.statusText}`);
         }
-
-        const dicas = await response.json(); // Converte a resposta para JSON
-        
-        exibirDicasNaTela(dicas); // Chama a função para mostrar os dados
-
+        const dicas = await response.json();
+        exibirDicasNaTela(dicas);
     } catch (error) {
         console.error('Erro ao buscar dicas de manutenção:', error);
         dicasContainer.innerHTML = '<p>Falha ao carregar as dicas. Tente novamente.</p>';
     }
 }
 
-// 3. Criar a função que exibe os dados na tela
 function exibirDicasNaTela(listaDeDicas) {
-    dicasContainer.innerHTML = ''; // Limpa a mensagem de "Carregando..."
-
+    dicasContainer.innerHTML = '';
     if (listaDeDicas.length === 0) {
         dicasContainer.innerHTML = '<p>Nenhuma dica encontrada.</p>';
         return;
     }
-
-    // Cria uma lista não ordenada (<ul>) para as dicas
     const ul = document.createElement('ul');
-
-    // Para cada item na lista de dicas, cria um item de lista (<li>)
     listaDeDicas.forEach(item => {
         const li = document.createElement('li');
-        li.textContent = item.dica; // O texto do <li> será a dica
-        ul.appendChild(li); // Adiciona o <li> na <ul>
+        li.textContent = item.dica;
+        ul.appendChild(li);
     });
-
-    dicasContainer.appendChild(ul); // Adiciona a lista completa na nossa div
+    dicasContainer.appendChild(ul);
 }
 
-// 4. Adicionar o "ouvinte de evento" no botão
-// Isso faz com que a função buscarDicasDeManutencao() seja executada quando o botão for clicado
 btnBuscarDicas.addEventListener('click', buscarDicasDeManutencao);
 
-// --- FIM DO NOVO CÓDIGO PARA DICAS ---
+
+// ----------------- NOVO CÓDIGO PARA VEÍCULOS EM DESTAQUE -----------------
+async function carregarVeiculosDestaque() {
+    const container = document.getElementById('veiculos-destaque-container');
+    if (!container) {
+        console.error('Elemento #veiculos-destaque-container não encontrado no HTML.');
+        return;
+    }
+
+    container.innerHTML = '<p>Carregando veículos...</p>';
+    
+    try {
+        const response = await fetch(`${backendUrl}/api/garagem/veiculos-destaque`);
+        if (!response.ok) {
+            throw new Error('Falha ao buscar os veículos em destaque.');
+        }
+        const veiculos = await response.json();
+
+        container.innerHTML = ''; 
+        
+        veiculos.forEach(veiculo => {
+            const card = document.createElement('div');
+            card.className = 'veiculo-card';
+            card.innerHTML = `
+                <img src="${veiculo.imagemUrl}" alt="Foto do ${veiculo.modelo}" style="width:100%; max-width:250px; border-radius:8px; object-fit: cover;">
+                <h3>${veiculo.modelo} (${veiculo.ano})</h3>
+                <p>${veiculo.destaque}</p>
+            `;
+            container.appendChild(card);
+        });
+    } catch (error) {
+        console.error('Erro ao carregar veículos:', error);
+        container.innerHTML = `<p style="color:red;">${error.message}</p>`;
+    }
+}
+
+// ----------------- INICIALIZAÇÃO DA PÁGINA -----------------
+// Este bloco será executado assim que a página terminar de carregar.
+window.addEventListener('load', () => {
+    console.log("Página carregada. Buscando dados iniciais...");
+    
+    // Chama a função para carregar os veículos automaticamente.
+    carregarVeiculosDestaque();
+    
+    // Se você tiver outras funções que devam rodar no início (como a do clima),
+    // chame-as aqui também.
+});
