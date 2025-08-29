@@ -1,38 +1,20 @@
-// ======================================================
-// Arquivo: js/CarroEsportivo.js
-// ======================================================
-class CarroEsportivo extends Veiculo {
-    turboAtivado;
-
-    constructor(modelo, cor, nickname, imagem, ligado, velocidade, fuelLevel, historicoManutencao, turboAtivado = false, id_api_param = null) {
-        super(modelo, cor, nickname, imagem, ligado, velocidade, fuelLevel, historicoManutencao, id_api_param);
-        this.turboAtivado = Boolean(turboAtivado);
+window.Esportivo = class Esportivo extends Carro {
+    constructor(modelo, cor, nickname, turbo = false, notificationCallback) { 
+        super(modelo, cor, nickname, notificationCallback); 
+        this.temTurbo = turbo; this.turboAtivo = false; 
     }
-
-    // Os métodos ligar, desligar, acelerar, frear são herdados de Veiculo.
-
-    // Sobrescreve o método ativarTurbo da classe Veiculo
     ativarTurbo() {
-        if (!this.ligado) { this._callGlobal('showNotification', "Ligue o carro antes de ativar o turbo.", "warning"); return; }
-        if (this.turboAtivado) { this._callGlobal('showNotification', "Turbo já está ativo!", "info"); return; }
-
-        const turboActivationCost = (typeof Constants !== 'undefined' ? Constants.TURBO_ACTIVATION_FUEL_COST : 5);
-        if (!this.consumirCombustivel(turboActivationCost)) {
-            this._callGlobal('showNotification', "Sem combustível suficiente para ativar o turbo!", "warning");
-            return;
-        }
-
-        this._callGlobal('playSound', "turbo", this.volume);
-        this.turboAtivado = true;
-        this._callGlobal('showNotification', "Turbo ATIVADO!", 'success');
-        this.updateDisplay();
-        this._callGlobal('salvarGaragem');
+        if (!this.temTurbo) { this.showNotification('Este veículo não possui turbo!', 'error'); return; }
+        if (!this.ligado) { this.showNotification('Ligue o carro para ativar o turbo.', 'error'); return; }
+        this.turboAtivo = !this.turboAtivo;
+        this.showNotification(`Turbo ${this.turboAtivo ? 'ATIVADO' : 'DESATIVADO'}!`, 'info');
     }
-
-    // O método desligar da classe Veiculo já cuida de this.turboAtivado = false;
-
-    exibirInformacoes() {
-        const turboStatus = this.turboAtivado ? 'Ligado <i class="fas fa-fire-alt" style="color: orange;" title="Turbo Ativo"></i>' : 'Desligado';
-        return `[Esportivo] ${super.exibirInformacoesBase()}, Turbo: ${turboStatus} <i class="fas fa-bolt" title="Carro Esportivo"></i>`;
+    acelerar() {
+        if (this.ligado) {
+            const incremento = this.turboAtivo ? 30 : 15;
+            const consumo = this.turboAtivo ? 8 : 4;
+            if (this.fuelLevel > 0) { super.acelerar(incremento); this.fuelLevel = Math.max(0, this.fuelLevel - consumo); } 
+            else { this.showNotification('Sem combustível!', 'error'); this.desligar(); }
+        } else { this.showNotification('Ligue o carro primeiro!', 'error'); }
     }
 }
