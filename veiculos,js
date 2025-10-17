@@ -1,0 +1,21 @@
+// ROTA PARA LISTAR OS VEÍCULOS (próprios e compartilhados)
+// GET /api/veiculos
+router.get('/', authMiddleware, async (req, res) => {
+    try {
+        const userId = req.userId; // ID do usuário logado
+
+        // A consulta agora busca veículos onde o usuário é o dono OU está no array sharedWith
+        const veiculos = await Veiculo.find({
+            $or: [
+                { owner: userId },       // Condição 1: Veículos que eu possuo
+                { sharedWith: userId }   // Condição 2: Veículos compartilhados comigo
+            ]
+        }).populate('owner', 'email'); // .populate() é essencial para mostrar o email do dono!
+
+        res.status(200).json(veiculos);
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Erro no servidor." });
+    }
+});
