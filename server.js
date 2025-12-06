@@ -6,8 +6,6 @@ import axios from 'axios';
 import path from 'path';
 import { fileURLToPath } from 'url';
 dotenv.config(); // Esta linha carrega as variáveis do arquivo .env
-
-import express from 'express';
 // ... resto das suas importações
 
 import Veiculo from './models/Veiculo.js';
@@ -179,4 +177,5 @@ async function seedDatabase() {
     }
 
 }
+
 
