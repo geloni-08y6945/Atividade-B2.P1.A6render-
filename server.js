@@ -19,8 +19,6 @@ import VeiculoDestaque from './models/VeiculoDestaque.js';
 import Manutencao from './models/manutencao.js';
 // --- FIM DA MODIFICAÇÃO ---
 
-dotenv.config();
-
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -180,4 +178,5 @@ async function seedDatabase() {
     } catch (error) {
         console.error("Erro ao popular o banco de dados:", error);
     }
+
 }
